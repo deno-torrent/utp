@@ -1,0 +1,15 @@
+{
+    "imports": {
+        "@src/": "./src/",
+        "std/": "https://deno.land/std@0.217.0/",
+        "toolkit/": "https://deno.land/x/toolkit@0.0.6/"
+    },
+    "tasks": {
+        "test": "DENO_ENV=test deno test --allow-all --unstable-net"
+    },
+    "test": {
+        "include": [
+            "./test"
+        ]
+    }
+}

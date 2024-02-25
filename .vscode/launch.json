@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "request": "launch",
+            "name": "Test debug",
+            "type": "node",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "deno",
+            "runtimeArgs": [
+                "test",
+                "--inspect-wait",
+                "--allow-all"
+            ],
+            "attachSimplePort": 9229
+        },
+        {
+            "request": "launch",
+            "name": "Launch Program",
+            "type": "node",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "/home/sloaix/.deno/bin/deno",
+            "runtimeArgs": [
+                "run",
+                "--unstable-net",
+            ],
+        },
+    ]
+}

@@ -31,7 +31,7 @@ export interface Extension {
 export class UtpPacket {
   public static HEADER_SIZE = 20 // 20 bytes, the size of the packet header
   public static EXTENSION_HEADER_SIZE = 2 // 2 bytes, the size of the extension header,1 byte for the next extension type,1 byte for the length of the extension
-  public static MIN_PACKET_SIZE = this.HEADER_SIZE // 20 bytes, the minimum size of a packet
+  public static MIN_PACKET_SIZE = 20 // 20 bytes, the minimum size of a packet (same as HEADER_SIZE)
   public static MAX_PACKET_SIZE = 1 << 16 // 64KB, the maximum size of a packet
 
   // type 4 bits

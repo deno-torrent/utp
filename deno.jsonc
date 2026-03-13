@@ -1,8 +1,21 @@
 {
+    "name": "@deno-torrent/utp",
+    "version": "0.0.1",
+    "exports": "./mod.ts",
     "imports": {
         "@src/": "./src/",
-        "std/": "https://deno.land/std@0.217.0/",
-        "toolkit/": "https://deno.land/x/toolkit@0.0.6/"
+        "std/assert/assert.ts": "jsr:@std/assert@1/assert",
+        "std/io/buffer.ts": "jsr:@std/io@^0.225/buffer",
+        "std/io/mod.ts": "jsr:@std/io@^0.225"
+    },
+    "publish": {
+        "exclude": [
+            "test/",
+            ".vscode/",
+            ".github/",
+            ".claude/",
+            ".prettierrc"
+        ]
     },
     "tasks": {
         "test": "DENO_ENV=test deno test --allow-all --unstable-net"

@@ -1,6 +1,5 @@
 import { UtpConn } from './utp_conn.ts'
 import { Extension, ExtensionType } from './utp_packet.ts'
-import { BitArray } from 'toolkit/mod.ts'
 import { Seq } from '@src/utilt.ts'
 
 /**

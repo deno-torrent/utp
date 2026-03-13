@@ -53,16 +53,16 @@ export class Utp {
   }
 
   // 启用日志
-  enableLogging() {
+  enableLogging(): void {
     this.logger.enable()
   }
 
   // 禁用日志
-  disableLogging() {
+  disableLogging(): void {
     this.logger.disable()
   }
 
-  get localAddr() {
+  get localAddr(): UtpAddr | undefined {
     return this.#udpSocket?.addr ? UtpAddr.fromDenoAddr(this.#udpSocket.addr as Deno.Addr) : undefined
   }
 
@@ -86,6 +86,7 @@ export class Utp {
     else {
       this.#udpSocket = Deno.listenDatagram({
         port: 0,
+        hostname: '0.0.0.0',
         transport: 'udp'
       })
     }
@@ -122,7 +123,7 @@ export class Utp {
    * create a μTP server
    * @param options listen options,if not provided, a random port will be used, and listen on all interfaces
    */
-  listen({ port, hostname = '0.0.0.0' }: { port: number; hostname?: string }) {
+  listen({ port, hostname = '0.0.0.0' }: { port: number; hostname?: string }): UTPListener {
     this.createUdpSocketIfNone(new UtpAddr(port, hostname))
     return this.listener
   }
@@ -182,34 +183,34 @@ export class Utp {
     })
   }
 
-  printConnTableKeys() {
+  printConnTableKeys(): void {
     const keys = Array.from(this.#connTable.keys())
     this.logger.debug(`Connection table keys: ${keys.length > 0 ? keys.join(', ') : 'None'}`)
   }
 
-  addConn(conn: UtpConn) {
+  addConn(conn: UtpConn): void {
     this.logger.info(`Adding new connection with ID: ${conn.uniqueId()}`)
     this.#connTable.set(conn.uniqueId(), conn)
   }
 
-  removeCon(conn: UtpConn) {
+  removeCon(conn: UtpConn): void {
     this.logger.info(`Removing connection with ID: ${conn.uniqueId()}`)
     this.#connTable.delete(conn.uniqueId())
   }
 
-  findConn(uniqueId: string) {
+  findConn(uniqueId: string): UtpConn | undefined {
     return this.#connTable.get(uniqueId)
   }
 
-  hasConn(uniqueId: string) {
+  hasConn(uniqueId: string): boolean {
     return this.#connTable.has(uniqueId)
   }
 
-  connSize() {
+  connSize(): number {
     return this.#connTable.size
   }
 
-  async timeoutCheck() {
+  async timeoutCheck(): Promise<void> {
     // iterate all connections
     for (const conn of this.#connTable.values()) {
       if (![UtpConnState.CS_CLOSED, UtpConnState.CS_RESET].includes(conn.localState)) {
@@ -218,17 +219,17 @@ export class Utp {
     }
   }
 
-  startTimeoutCheck() {
+  startTimeoutCheck(): void {
     this.logger.debug(`Starting timeout check timer`)
     TimerManager.setTimer(this.#TIMEOUT_CHECK_TIMER_NAME, this.timeoutCheck.bind(this), this.#TIMEOUT_CHECK_INTERVAL)
   }
 
-  stopTimeoutCheck() {
+  stopTimeoutCheck(): void {
     this.logger.debug(`Stopping timeout check timer`)
     TimerManager.clearTimer(this.#TIMEOUT_CHECK_TIMER_NAME)
   }
 
-  async startListen() {
+  async startListen(): Promise<void> {
     this.logger.info(`Starting to listen for incoming UTP packets`)
     while (!this.isClosed()) {
       try {
@@ -253,15 +254,15 @@ export class Utp {
     }
   }
 
-  isClosed() {
+  isClosed(): boolean {
     return this.#state === UtpState.CLOSED
   }
 
-  isCloseWait() {
+  isCloseWait(): boolean {
     return this.#state === UtpState.CLOSE_WAIT
   }
 
-  isActive() {
+  isActive(): boolean {
     return this.#state === UtpState.ACTIVE
   }
 
@@ -300,7 +301,7 @@ export class Utp {
    * @param udpBytes
    * @param remoteUdpAddr
    */
-  async dispatch(udpBytes: Uint8Array, remoteUdpAddr: Deno.Addr) {
+  async dispatch(udpBytes: Uint8Array, remoteUdpAddr: Deno.Addr): Promise<void> {
     if (!UtpPacket.isPacket(udpBytes)) {
       this.logger.debug(`invalid utp packet from ${remoteUdpAddr}`)
       return

@@ -1,5 +1,20 @@
 {
-  "version": "4",
+  "version": "5",
+  "specifiers": {
+    "jsr:@std/bytes@^1.0.6": "1.0.6",
+    "jsr:@std/io@0.225": "0.225.3"
+  },
+  "jsr": {
+    "@std/bytes@1.0.6": {
+      "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
+    },
+    "@std/io@0.225.3": {
+      "integrity": "27b07b591384d12d7b568f39e61dff966b8230559122df1e9fd11cc068f7ddd1",
+      "dependencies": [
+        "jsr:@std/bytes"
+      ]
+    }
+  },
   "remote": {
     "https://deno.land/std@0.217.0/assert/_constants.ts": "a271e8ef5a573f1df8e822a6eb9d09df064ad66a4390f21b3e31f820a38e0975",
     "https://deno.land/std@0.217.0/assert/_diff.ts": "dcc63d94ca289aec80644030cf88ccbf7acaa6fbd7b0f22add93616b36593840",
@@ -252,5 +267,11 @@
     "https://deno.land/x/toolkit@0.0.6/src/io/multi_file_reader.ts": "0ce9608653e881f32147763d42a7e500f78c2cd3da3a891c90ad8e6f0504a76a",
     "https://deno.land/x/toolkit@0.0.6/src/io/simple_buffer.ts": "f227abfccd7482bca3a7a724616296aadee0cca2b7e1d748b1ef9faa7add02b6",
     "https://deno.land/x/toolkit@0.0.6/src/net/net_util.ts": "12fd0fccda038f6c15a676d5d225434cad9954563f933636048bd30b11db2a5e"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@1",
+      "jsr:@std/io@1"
+    ]
   }
 }

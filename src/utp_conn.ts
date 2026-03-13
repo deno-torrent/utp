@@ -200,18 +200,18 @@ export class UtpConn implements Reader, Writer, Closer {
     return `addr(${remoteAddr.toString()})|send_id(${localSendId})|recv_id(${localRecvId})`
   }
 
-  notifyStateChange(oldState: UtpConnState, newState: UtpConnState) {
+  notifyStateChange(oldState: UtpConnState, newState: UtpConnState): void {
     this.logger.debug(`[STATE CHANGE]: ${UtpConnState[oldState]} ===> ${UtpConnState[newState]}`)
     this.listeners.forEach((listener) => {
       listener(this.localState)
     })
   }
 
-  addListener(listener: (state: UtpConnState) => void) {
+  addListener(listener: (state: UtpConnState) => void): void {
     this.listeners.push(listener)
   }
 
-  removeListener(listener: (state: UtpConnState) => void) {
+  removeListener(listener: (state: UtpConnState) => void): void {
     const index = this.listeners.indexOf(listener)
     if (index !== -1) {
       this.listeners.splice(index, 1)
@@ -231,10 +231,11 @@ export class UtpConn implements Reader, Writer, Closer {
       return Promise.resolve(false)
     }
 
-    // 此时ackNr还没有初始化,直接赋值
-    this.localAckNr = packet.seqNr
+    // 此时ackNr还没有初始化
+    // uTP中ST_STATE（SYN-ACK）不消耗序列号，对端第一个ST_DATA与SYN-ACK使用
+    // 相同的seqNr，因此localAckNr需设为seqNr-1，使duplicate检测正常工作
+    this.localAckNr = Seq.add(packet.seqNr, -1)
     this.localState = UtpConnState.CS_CONNECTED
-    this.logger.debug(`SynSentState: connection is connected`)
     return Promise.resolve(true)
   }
 
@@ -251,7 +252,7 @@ export class UtpConn implements Reader, Writer, Closer {
       return false
     }
 
-    // check ack: 客户端应 ACK 我们的 SYN-ACK（seqNr = localSeqNr - 1）
+    // check ack: 客户端应 ACK 我们的 SYN-ACK（SYN-ACK不消耗seqNr，ackNr = seqNr - 1）
     if (packet.ackNr !== Seq.add(this.localSeqNr, -1)) {
       this.logger.debug(
         `SynReceivedState: ignore packet ackNumber: ${packet.ackNr},because it's not equal to conn.seqNumber-1 ${Seq.add(this.localSeqNr, -1)}`
@@ -475,11 +476,14 @@ export class UtpConn implements Reader, Writer, Closer {
     if (this.isInitiator) {
       packet = UtpPacket.createSynPacket(this)
       this.#localSynPacket = packet
+      // SYN 消耗一个序列号，与服务端的 SYN-ACK 保持一致
+      // BEP 29：发送方下一个 DATA 的 seqNr 必须比 SYN 大 1
+      this.localSeqNr++
     } else {
       packet = UtpPacket.createAckPacket(this)
-      // SYN-ACK 消耗一个序列号，保证后续数据包的 seqNr 与 SYN-ACK 不冲突
-      // 否则接收方会将第一个数据包误判为重复包（seqNr === localAckNr）
-      this.localSeqNr++
+      // uTP中ST_STATE（SYN-ACK）不消耗序列号——与Transmission等主流实现保持一致：
+      // 服务端第一个ST_DATA与SYN-ACK共用同一seqNr。
+      // 注意：不再执行 localSeqNr++ 以匹配BEP 29标准行为
     }
 
     await this.sendUtpPacket(packet)
@@ -498,6 +502,10 @@ export class UtpConn implements Reader, Writer, Closer {
           this.removeListener(onStateChange)
           clearTimeout(timeoutId)
           resolve(this)
+        } else if (state === UtpConnState.CS_RESET) {
+          this.removeListener(onStateChange)
+          clearTimeout(timeoutId)
+          reject(new Error('Connection reset by remote'))
         } else if (state === UtpConnState.CS_CLOSED) {
           this.removeListener(onStateChange)
           clearTimeout(timeoutId)
@@ -579,12 +587,12 @@ export class UtpConn implements Reader, Writer, Closer {
   /**
    * check if the connection is timeout
    */
-  async timeoutCheck() {
+  async timeoutCheck(): Promise<void> {
     switch (this.localState) {
       case UtpConnState.CS_SYN_SENT: {
         const isConnectTimeout =
           this.#localSynPacket &&
-          Util.currentMicroseconds() - this.#localSynPacket.timestampMicroseconds > UtpConn.CONNECT_TIMEOUT_DURATION
+          Util.currentMicroseconds() - this.#localSynPacket.timestampMicroseconds > UtpConn.CONNECT_TIMEOUT_DURATION * 1000
         if (isConnectTimeout) {
           this.logger.debug(`Connection ${this.tag} connect timeout, force close`)
           this.forceClose()

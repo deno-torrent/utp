@@ -16,44 +16,44 @@ export class Statistic {
   #started: boolean = false
 
   // Sent data getters
-  get totalSentData() {
+  get totalSentData(): number {
     return this.#sentData
   }
 
-  get averageSentSpeed() {
+  get averageSentSpeed(): number {
     return this.#sentSpeedMeasurements > 0 ? this.#totalSentSpeedAccumulator / this.#sentSpeedMeasurements : 0
   }
 
-  get maxSentSpeed() {
+  get maxSentSpeed(): number {
     return this.#maxSentSpeed
   }
 
-  get minSentSpeed() {
+  get minSentSpeed(): number {
     return this.#minSentSpeed === Number.POSITIVE_INFINITY ? 0 : this.#minSentSpeed
   }
 
-  get lastSentSpeed() {
+  get lastSentSpeed(): number {
     return this.#sentDataInLastSecond
   }
 
   // Received data getters
-  get totalRecvData() {
+  get totalRecvData(): number {
     return this.#recvData
   }
 
-  get averageRecvSpeed() {
+  get averageRecvSpeed(): number {
     return this.#recvSpeedMeasurements > 0 ? this.#totalRecvSpeedAccumulator / this.#recvSpeedMeasurements : 0
   }
 
-  get maxRecvSpeed() {
+  get maxRecvSpeed(): number {
     return this.#maxRecvSpeed
   }
 
-  get minRecvSpeed() {
+  get minRecvSpeed(): number {
     return this.#minRecvSpeed === Number.POSITIVE_INFINITY ? 0 : this.#minRecvSpeed
   }
 
-  get lastRecvSpeed() {
+  get lastRecvSpeed(): number {
     return this.#recvDataInLastSecond
   }
 
